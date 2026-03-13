@@ -1,0 +1,3 @@
+# Spec Summary (Lite)
+
+Stand up compiling, runnable skeleton projects for both the .NET 10 Minimal API backend and the React 19 + Vite frontend, forming the foundation of the QuarterEndTax Support Utils application. The backend exposes seven stub endpoints (returning 501) with global RFC 7807 exception middleware and shared infrastructure (`AppEnvironment` enum, `EnvironmentConnectionResolver`, `SqlConnectionFactory`); the frontend provides an `AppShell` layout with persistent sidebar navigation, an environment selector (QSB / STAGING / PROD), and placeholder pages for all 7 feature areas — no real business logic, queries, or auth are implemented at this stage.
