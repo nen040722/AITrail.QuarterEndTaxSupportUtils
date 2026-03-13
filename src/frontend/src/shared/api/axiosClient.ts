@@ -3,10 +3,10 @@ import axios from 'axios';
 import { getEnvironment } from '../environment/EnvironmentContext';
 
 export const axiosClient = axios.create({
-  baseURL: '/api/v1',
+    baseURL: '/api/v1',
 });
 
 axiosClient.interceptors.request.use((config) => {
-  config.params = { ...config.params, environment: getEnvironment() };
-  return config;
+    config.params = { ...config.params, environment: getEnvironment() };
+    return config;
 });
