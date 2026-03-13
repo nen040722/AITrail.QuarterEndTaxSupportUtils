@@ -15,7 +15,8 @@ export default function DashboardPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['health'],
     queryFn: fetchHealth,
-    retry: 1,
+    retry: false,
+    refetchInterval: (query) => (query.state.data?.status === 'ok' ? 10_000 : 3_000),
   });
 
   return (
