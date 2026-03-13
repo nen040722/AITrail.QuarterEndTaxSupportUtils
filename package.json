@@ -1,0 +1,26 @@
+{
+  "name": "aitrail.quarterendtaxsupportutils",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently --names \"API,UI\" --prefix-colors \"cyan,magenta\" \"npm run start:api\" \"npm run start:ui\"",
+    "start:api": "dotnet run --project src/AITrail.QuarterEndTaxSupportUtils.API/AITrail.QuarterEndTaxSupportUtils.API.csproj",
+    "start:ui": "npm run dev --prefix src/frontend"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nen040722/AITrail.QuarterEndTaxSupportUtils.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/nen040722/AITrail.QuarterEndTaxSupportUtils/issues"
+  },
+  "homepage": "https://github.com/nen040722/AITrail.QuarterEndTaxSupportUtils#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
