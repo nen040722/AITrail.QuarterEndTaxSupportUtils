@@ -1,0 +1,133 @@
+/create-spec create a spec for the following:
+
+**Purpose**
+Populate "Failed CTR's page"
+
+Here we want to show all failed CTRs for current date (by default)
+There should be an datepicker that will allow the user to choose the day.
+Once data is loaded it should be shown in table fashion.
+
+Columns for table should be :
+- TaxPacketGuid
+- PQUID
+- ClientId
+- Year
+- Quarter
+- ProcessStatus
+- Message
+- META_CreatedAt
+- ReportType
+- IsReportWizardCTR
+
+- This is loaded through API call
+
+When clicked on a single row of the table, it should open up a new popup window (large), that will show
+- Labels with values: - TaxPacketGuid- PQUID- ClientId- Year- Quarter
+- Should load all TaxForms that FAILED for that tax packet generation, and show them in table fashion.
+- Columns for that should be:
+    - ReportName
+    - ReportStatus
+    - ReportDataTransStatus
+    - PdfGenStatus
+    - ReportDataTransMessage
+    - PdfGenMessage
+- This is loaded through API call
+
+
+** Technical details - Backend **
+I will break this down into things that need to be implemented and I will describe how they should be implemented
+1) Setup 3 settings in appsettings.json for TaxSnapshotDb connection string
+    - Name them 
+        - TaxSnapshotDbConnectionString_QSB
+        - TaxSnapshotDbConnectionString_RC
+        - TaxSnapshotDbConnectionString_PROD
+    - leave empty strings as placeholder, I will populate those later
+    - Inject ConnectionStringProvider class into DI
+    - ConnectionStringProvider class should have GetTaxSnasphotDbConnectionString method, which returns proper connection string based on environment as input param
+
+2) GetFailedCTRsQuery
+This query will provide list of failed CTRs for given date range
+MSSQL query should be:
+```sql
+declare @from DATETIME = '2026-01-05'
+declare @to DATETIME = '2026-01-06'
+select
+tpgps.TaxPacketGuid,tpgps.PQUID,tpgps.ClientId,tpgps.Year,tpgps.Quarter,tpgps.ProcessStatus,tpgps.Message,tpgps.META_DateCreated,tpgps.ReportType,tpgps.IsReportWizardCTR
+from TaxPacketGenerationProcessStatus tpgps
+where 1=1
+AND tpgps.ProcessStatus = 'PROCESS_FAILED'
+AND (tpgps.META_DateCreated >= @from AND tpgps.META_DateCreated <= @to);
+```
+@from and @to are input params and should be provided from application level code.
+Result that query yields is:
+TaxPacketGuid	PQUID	ClientId	Year	Quarter	ProcessStatus	META_DateCreated	ReportType	IsReportWizardCTR
+E6755438-92A0-4EB1-A556-85F23CBF005C	122154777166864	136367	2021	4	PROCESS_FAILED	2026-01-05 11:57:50.237	CTR	0
+F2506742-B9E5-4BCA-8764-D26D14D62942	258278353678137	215680	2022	1	PROCESS_FAILED	2026-01-05 12:00:06.557	CTR	0
+23163FE9-CD18-4684-855D-F1C9DB49A453	150474396003937	117982	2021	4	PROCESS_FAILED	2026-01-05 07:41:18.030	CTR	0
+8F037A38-54B6-4EED-9ACA-7B5FC39FA788	183325166691644	254788	2022	3	PROCESS_FAILED	2026-01-05 08:53:11.860	CTR	0
+27F32A79-D9F3-4617-AD34-7B78A5BB353A	2148634389851	216831	2021	4	PROCESS_FAILED	2026-01-05 07:50:17.200	CTR	0
+D01EF603-FAD3-45B5-877D-DFD95F4BFC45	122154777166864	136367	2021	4	PROCESS_FAILED	2026-01-05 08:38:39.550	CTR	0
+B807BF70-00C9-4FA0-BDFF-01625354BAD8	239340887328221	216849	2021	4	PROCESS_FAILED	2026-01-05 07:41:18.030	CTR	0
+1247A89A-9DAC-4E61-BA81-1E11600F240E	258278353678137	215680	2022	1	PROCESS_FAILED	2026-01-05 08:53:12.047	CTR	0
+096A5178-45EF-4680-A53F-321F216F5A60	122154777166864	136367	2021	4	PROCESS_FAILED	2026-01-05 04:43:28.690	CTR	0
+95BB1DEA-0EE4-42A3-BC91-43E56FD1C5CC	228400390817333	216547	2021	4	PROCESS_FAILED	2026-01-05 04:43:20.620	CTR	0
+FEFBF7DC-0952-49C7-8B4E-91FB473268A3	19124682281185	216288	2021	4	PROCESS_FAILED	2026-01-05 04:29:33.387	CTR	0
+31F33D98-6437-4C20-8285-93F88405B3CA	122154777166864	136367	2021	4	PROCESS_FAILED	2026-01-05 04:30:29.227	CTR	0
+FA0EF39F-FB0C-456D-A6F3-D331D2B195ED	189972551528055	216171	2021	4	PROCESS_FAILED	2026-01-05 11:59:47.337	CTR	0
+5066250B-6CB0-4A8B-94EC-549437F7A915	19124682281185	216288	2021	4	PROCESS_FAILED	2026-01-05 12:09:40.310	CTR	0
+96902328-382F-4C8D-A047-B95BA390AC38	122154777166864	136367	2021	4	PROCESS_FAILED	2026-01-05 12:11:21.450	CTR	0
+13B83BE8-6F82-4EBA-91A5-C47C9460C40C	23508447191086	119008	2022	3	PROCESS_FAILED	2026-01-05 09:04:33.277	CTR	0
+
+Create record from this info, and add Message property which is the type of string.
+Name record TaxPacketGenerationProcessStatusQueryModel.
+
+3) GetFailedFormsForCTRQuery
+This query will provide list of forms for given CTR
+Input param will be TaxPacketGuid (unique identifier for CTR)
+MSSQL query:
+```sql
+declare @taxPacketGuid UNIQUEIDENTIFIER = 'E6755438-92A0-4EB1-A556-85F23CBF005C'
+select TaxPacketGuid,Id,ReportName,ReportStatus,ReportDataTransStatus,PdfGenStatus,ReportDataTransMessage,PdfGenMessage, TaxAuthCode,TaxCode,TaxFormName,GenerationType
+from TaxReportGenerationStatus
+where 1=1
+AND TaxPacketGuid = @taxPacketGuid
+AND ReportStatus = 'F';
+```
+
+Results that query yields are:
+TaxPacketGuid	Id	ReportName	ReportStatus	ReportDataTransStatus	PdfGenStatus	TaxAuthCode	TaxCode	TaxFormName	GenerationType
+E6755438-92A0-4EB1-A556-85F23CBF005C	034C41B8-E977-4934-8226-B9E9A8DB04E7	Tax form - PA LST Return PAKEYL	F	Success	UnexpectedFailure	PAKEYL	PADOYL	PA_LST_Return	Cloud
+E6755438-92A0-4EB1-A556-85F23CBF005C	896878C0-DF69-49F0-A41E-A429799EE8DD	Tax form - W3 Reconciliation PA	F	Success	UnexpectedFailure	PA	PA	Generic_W3_Reconciliation	Cloud
+E6755438-92A0-4EB1-A556-85F23CBF005C	E055E8A1-96F5-4140-A95C-5EACC674EB56	Tax form - YTD WageList IL	F	Success	UnexpectedFailure	IL	IL	YtdWageList	Cloud
+
+Create record from this info, and add ReportDataTransMessage and PdfGenMessage properties that are strings.
+Name record TaxReportGenerationStatusQueryModel.
+
+
+4) Create service that encapsulates these queries with 2 methods:
+    - GetFailedCtrsAsync
+    - GetFailedFormsForCtrAsync
+
+The first method will just execute GetFailedCTRsQuery and return result
+The second method should
+    - Execute query
+    - Encapsulate every failed form in new record "FailedTaxReportGenerationStatusQueryModel", that has 2 properties:
+        - TaxReportGenerationStatusQueryModel
+        - IsFailedBecauseOfTransientError (boolean)
+            - This field is calculated by next criteria:
+                    IsFailedBecauseOfTransientError is true if:
+                        ReportDataTransMessage like '%Failed to upload generated file to PRS API%'
+                        OR PdfGenMessage like '%Failed to upload generated file to PRS API%'
+                        OR ReportDataTransMessage like '%Execution Timeout Expired%'
+                        OR PdfGenMessage like '%Execution Timeout Expired%'  
+                        OR ReportDataTransMessage like '%Microsoft.Data.SqlClient.SqlException%'
+                        OR PdfGenMessage like '%Microsoft.Data.SqlClient.SqlException%'  
+                        OR ReportDataTransMessage like '%The wait operation timed out%'
+                        OR PdfGenMessage like '%The wait operation timed out%'  
+                        OR ReportDataTransMessage like '%This SqlTransaction has completed; it is no longer usable%'
+                        OR PdfGenMessage like '%This SqlTransaction has completed; it is no longer usable%'                 
+    - Return list of FailedTaxReportGenerationStatusQueryModel
+
+5) Expose those calls via endpoints
+    - Remember to include Environment input param in each of these calls
+    - use Environment input param to resolve proper connection string

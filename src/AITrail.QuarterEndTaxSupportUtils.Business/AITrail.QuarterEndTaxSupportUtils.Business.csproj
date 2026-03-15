@@ -13,4 +13,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="AITrail.QuarterEndTaxSupportUtils.Tests" />
+  </ItemGroup>
+
 </Project>

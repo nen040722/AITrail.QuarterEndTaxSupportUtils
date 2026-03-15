@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="AITrail.QuarterEndTaxSupportUtils.API/AITrail.QuarterEndTaxSupportUtils.API.csproj" />
   <Project Path="AITrail.QuarterEndTaxSupportUtils.Business/AITrail.QuarterEndTaxSupportUtils.Business.csproj" />
+  <Project Path="AITrail.QuarterEndTaxSupportUtils.Tests/AITrail.QuarterEndTaxSupportUtils.Tests.csproj" />
 </Solution>
